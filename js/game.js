@@ -1,81 +1,166 @@
-// js/game.js
-// Initialize game state
-let currentQuestion = 0;
+const questions = [
+    {
+        word: "CAT",
+        image: "images/animals/cat.png",
+        letters: ["C", "A", "T", "D", "O", "G", "B", "U"],
+        reward: "🐱"
+    },
+    {
+        word: "DOG",
+        image: "images/animals/dog.png",
+        letters: ["D", "O", "G", "C", "A", "T", "E", "F"],
+        reward: "🐶"
+    }
+];
+
+let currentLevel = 0;
 let score = 0;
-let hintsLeft = 3;
+let hintsRemaining = 3;
 let selectedLetters = [];
-let questions = []; // Populate with your questions
 
-// Game elements
-const startButton = document.getElementById('start-button');
-const gameContainer = document.getElementById('game-container');
+// DOM Elements
 const startScreen = document.getElementById('start-screen');
+const gameContainer = document.getElementById('game-container');
+const startButton = document.getElementById('start-button');
+const leaderboardButton = document.getElementById('show-leaderboard');
+const leaderboard = document.getElementById('leaderboard');
 
-// Initialize game
+// Initialize Game
+startButton.addEventListener('click', startNewGame);
+leaderboardButton.addEventListener('click', showLeaderboard);
+
 function startNewGame() {
-    // Reset game state
-    currentQuestion = 0;
+    currentLevel = 0;
     score = 0;
-    hintsLeft = 3;
+    hintsRemaining = 3;
     selectedLetters = [];
     
-    // Update UI
     startScreen.classList.add('hidden');
     gameContainer.classList.remove('hidden');
-    document.getElementById('score').textContent = '0';
-    document.getElementById('hint-count').textContent = '3';
-    
-    // Load first question
-    loadQuestion(currentQuestion);
+    updateDisplay();
+    loadLevel();
 }
 
-// Add event listener properly
-startButton.addEventListener('click', startNewGame);
-
-// Sample question loader
-function loadQuestion(index) {
-    const question = questions[index];
-    
-    // Clear previous letters
-    const lettersContainer = document.getElementById('letters-container');
-    lettersContainer.innerHTML = '';
-    
-    // Create letter buttons
-    question.letters.forEach(letter => {
-        const button = document.createElement('button');
-        button.className = 'letter';
-        button.textContent = letter;
-        button.addEventListener('click', handleLetterClick);
-        lettersContainer.appendChild(button);
-    });
-    
-    // Update image and word display
-    document.getElementById('image-container').innerHTML = `
-        <img src="${question.image}" alt="${question.word}">
-    `;
+function loadLevel() {
+    const level = questions[currentLevel];
     document.getElementById('selected-word').textContent = '';
+    document.getElementById('image-container').innerHTML = `
+        <img class="animal-image" src="${level.image}" alt="${level.word}">
+    `;
+    
+    // Shuffle letters
+    const shuffledLetters = [...level.letters].sort(() => Math.random() - 0.5);
+    const lettersContainer = document.getElementById('letters-container');
+    lettersContainer.innerHTML = shuffledLetters
+        .map(letter => `<div class="letter">${letter}</div>`)
+        .join('');
+
+    // Add click listeners
+    document.querySelectorAll('.letter').forEach(letter => {
+        letter.addEventListener('click', () => handleLetterClick(letter));
+    });
 }
 
-function handleLetterClick(event) {
-    const letter = event.target.textContent;
-    selectedLetters.push(letter);
-    event.target.disabled = true;
+function handleLetterClick(letterElement) {
+    if (selectedLetters.length >= questions[currentLevel].word.length) return;
     
-    // Update selected word display
+    const letter = letterElement.textContent;
+    selectedLetters.push(letter);
+    letterElement.classList.add('disabled');
     document.getElementById('selected-word').textContent = selectedLetters.join('');
     
-    // Check answer
-    if(selectedLetters.join('') === questions[currentQuestion].word) {
-        score += 100;
-        document.getElementById('score').textContent = score;
-        currentQuestion++;
-        
-        if(currentQuestion < questions.length) {
-            setTimeout(() => loadQuestion(currentQuestion), 1000);
-        } else {
-            endGame();
+    if (selectedLetters.join('') === questions[currentLevel].word) {
+        handleCorrectAnswer();
+    } else if (selectedLetters.length === questions[currentLevel].word.length) {
+        handleWrongAnswer();
+    }
+}
+
+function handleCorrectAnswer() {
+    score += 100;
+    questions[currentLevel].reward && addCollectible(questions[currentLevel].reward);
+    currentLevel++;
+    
+    if (currentLevel < questions.length) {
+        setTimeout(() => {
+            selectedLetters = [];
+            loadLevel();
+            updateDisplay();
+        }, 1000);
+    } else {
+        endGame();
+    }
+}
+
+function handleWrongAnswer() {
+    score = Math.max(0, score - 20);
+    document.querySelectorAll('.letter').forEach(letter => {
+        if (selectedLetters.includes(letter.textContent)) {
+            letter.classList.add('wrong');
+        }
+    });
+    
+    setTimeout(() => {
+        selectedLetters = [];
+        document.querySelectorAll('.letter').forEach(letter => {
+            letter.classList.remove('wrong', 'disabled');
+        });
+        document.getElementById('selected-word').textContent = '';
+        updateDisplay();
+    }, 1000);
+}
+
+async function endGame() {
+    const name = prompt('Game Over! Enter your name:') || 'Anonymous';
+    if (name.trim()) {
+        try {
+            await window.firebaseService.saveScore(name.trim(), score);
+            showLeaderboard();
+        } catch (error) {
+            alert('Could not save score. Please try again!');
         }
     }
 }
 
-// Rest of your game logic (hints, leaderboard, etc.)
+async function showLeaderboard() {
+    try {
+        const scores = await window.firebaseService.getLeaderboard();
+        const scoresHTML = scores.map((entry, index) => `
+            <div class="score-item">
+                <span>${index + 1}. ${entry.name}</span>
+                <span>${entry.score}</span>
+            </div>
+        `).join('');
+        
+        document.getElementById('scores-list').innerHTML = scoresHTML;
+        leaderboard.classList.remove('hidden');
+    } catch (error) {
+        alert('Could not load leaderboard.');
+    }
+}
+
+// Helper Functions
+function updateDisplay() {
+    document.getElementById('score').textContent = score;
+    document.getElementById('hint-count').textContent = hintsRemaining;
+}
+
+function addCollectible(emoji) {
+    document.getElementById('collectibles').innerHTML += emoji;
+}
+
+// Initialize real-time leaderboard
+window.firebaseService.setupRealTimeUpdates(scores => {
+    document.getElementById('scores-list').innerHTML = scores
+        .map((entry, index) => `
+            <div class="score-item">
+                <span>${index + 1}. ${entry.name}</span>
+                <span>${entry.score}</span>
+            </div>
+        `).join('');
+});
+
+// Close leaderboard
+document.querySelector('.close-btn').addEventListener('click', () => {
+    leaderboard.classList.add('hidden');
+});
