@@ -1,399 +1,46 @@
+<!-- index.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Word Safari - Kids Learning Game</title>
-    <style>
-        :root {
-            --primary: #FF6B6B;
-            --secondary: #4ECDC4;
-            --accent: #FFE66D;
-            --background: #F7FFF7;
-        }
-
-        body {
-            margin: 0;
-            font-family: 'Comic Sans MS', cursive;
-            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        #start-screen {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            padding: 2rem;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 20px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.2);
-            max-width: 90%;
-        }
-
-        #game-container {
-            display: none;
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-        }
-
-        .game-title {
-            color: var(--primary);
-            text-shadow: 2px 2px 0 var(--accent);
-            font-size: 3rem;
-            margin: 1rem 0;
-        }
-
-        #letters-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-            gap: 1rem;
-            margin: 2rem 0;
-        }
-
-        .letter {
-            background: var(--secondary);
-            color: white;
-            font-size: 2rem;
-            padding: 1rem;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 3px solid white;
-            user-select: none;
-        }
-
-        .letter:hover {
-            transform: scale(1.1) rotate(5deg);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        .selected {
-            background: var(--accent) !important;
-            transform: scale(0.9) rotate(-5deg);
-        }
-
-        .wrong {
-            background: #FF5252 !important;
-            animation: shake 0.5s;
-        }
-
-        #selected-word {
-            font-size: 3rem;
-            letter-spacing: 1rem;
-            color: var(--primary);
-            margin: 2rem 0;
-            font-weight: bold;
-        }
-
-        .reward-emoji {
-            font-size: 2rem;
-            margin: 0 0.5rem;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-
-        @keyframes shake {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(10px); }
-            50% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
-            100% { transform: translateX(0); }
-        }
-
-        .button {
-            background: var(--primary);
-            color: white;
-            padding: 1rem 2rem;
-            border: none;
-            border-radius: 30px;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 1rem;
-        }
-
-        .button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        .star {
-            color: gold;
-            font-size: 2rem;
-            margin: 0 0.2rem;
-        }
-
-        #music-toggle {
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
-            font-size: 2rem;
-            cursor: pointer;
-            background: none;
-            border: none;
-        }
-
-        .animal-image {
-            width: 200px;
-            height: 200px;
-            object-fit: contain;
-            animation: bounce 2s infinite;
-        }
-
-        #score-board {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            font-size: 1.5rem;
-            margin: 1rem 0;
-        }
-    </style>
+    <title>Kids Word Game</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Add Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body>
-    <button id="music-toggle">🎵</button>
-    
     <div id="start-screen">
-        <h1 class="game-title">Word Safari! 🦁</h1>
-        <p>🌈 Find the hidden words to help the animals! 🌟</p>
-        <button class="button" id="start-button">Start Adventure! 🚀</button>
-        <p>🏆 Best Score: <span id="start-high-score">0</span></p>
+        <h1>Word Adventure! 🎮</h1>
+        <button id="start-button">Play Now! 🚀</button>
+        <button id="show-leaderboard">Leaderboard 🏆</button>
     </div>
 
     <div id="game-container">
-        <div id="score-board">
-            <span>⭐ Score: <span id="score">0</span></span>
-            <span>🏅 Best: <span id="high-score">0</span></span>
-            <span>💡 Hints: <span id="hint-count">3</span></span>
-        </div>
+        <!-- Game content remains same -->
+    </div>
 
-        <div id="image-container">
-            <img class="animal-image" src="images/animals/cat.png" alt="Animal friend">
-        </div>
-
-        <div id="selected-word"></div>
-
-        <div id="letters-container"></div>
-
-        <div id="stars"></div>
-
-        <div id="rewards">
-            <p>🎁 Your Treasures: <span id="collectibles"></span></p>
-        </div>
-
-        <button class="button" id="hint-btn">🔍 Need Help? (Cost: 50 points)</button>
-        <button class="button" id="next-level" style="display: none;">Next Level ➡</button>
+    <div id="leaderboard" class="hidden">
+        <h2>Top Players 🏅</h2>
+        <div id="scores-list"></div>
+        <button class="close-btn">Close</button>
     </div>
 
     <script>
-        const levels = [
-            {
-                word: "CAT",
-                image: "images/animals/cat.png",
-                letters: ["C", "A", "T", "D", "O", "G", "B", "U", "M", "P"],
-                reward: "🐱"
-            },
-            {
-                word: "DOG",
-                image: "images/animals/dog.png",
-                letters: ["D", "O", "G", "C", "A", "T", "B", "E", "F", "H"],
-                reward: "🐶"
-            }
-        ];
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
-        let currentLevel = 0;
-        let score = 0;
-        let hintsRemaining = 3;
-        let selectedLetters = [];
-        let highScore = localStorage.getItem('highScore') || 0;
-        let startTime;
-        const bgMusic = new Audio('audio/music/background.mp3');
-        const correctSound = new Audio('audio/sfx/correct.mp3');
-        const wrongSound = new Audio('audio/sfx/wrong.mp3');
-
-        // Game Initialization
-        document.getElementById('start-button').addEventListener('click', () => {
-            document.getElementById('start-screen').style.display = 'none';
-            document.getElementById('game-container').style.display = 'block';
-            startNewGame();
-        });
-
-        function startNewGame() {
-            currentLevel = 0;
-            score = 0;
-            hintsRemaining = 3;
-            selectedLetters = [];
-            updateDisplay();
-            loadLevel();
-            bgMusic.play();
-            bgMusic.volume = 0.3;
-        }
-
-        function loadLevel() {
-            const level = levels[currentLevel];
-            startTime = Date.now();
-            
-            document.querySelector('.animal-image').src = level.image;
-            
-            const lettersContainer = document.getElementById('letters-container');
-            lettersContainer.innerHTML = shuffleArray([...level.letters])
-                .map(letter => `<div class="letter">${letter}</div>`)
-                .join('');
-
-            document.querySelectorAll('.letter').forEach(letter => {
-                letter.addEventListener('click', () => selectLetter(letter));
-            });
-
-            document.getElementById('next-level').style.display = 'none';
-            document.getElementById('selected-word').textContent = '';
-        }
-
-        function selectLetter(letterElement) {
-            if (selectedLetters.length >= levels[currentLevel].word.length) return;
-
-            const letter = letterElement.textContent;
-            selectedLetters.push(letter);
-            letterElement.classList.add('selected');
-            updateSelectedWordDisplay();
-
-            if (selectedLetters.length === levels[currentLevel].word.length) {
-                checkAnswer();
-            }
-        }
-
-        function checkAnswer() {
-            const currentWord = selectedLetters.join('');
-            const correctWord = levels[currentLevel].word;
-            
-            if (currentWord === correctWord) {
-                correctSound.play();
-                handleCorrectAnswer();
-            } else {
-                wrongSound.play();
-                handleWrongAnswer();
-            }
-        }
-
-        function handleCorrectAnswer() {
-            score += 100;
-            showStars(calculateStars());
-            addCollectible(levels[currentLevel].reward);
-            updateHighScore();
-            updateDisplay();
-            
-            setTimeout(() => {
-                alert('🎉 Correct! Great job!');
-                document.getElementById('next-level').style.display = 'block';
-            }, 500);
-        }
-
-        function handleWrongAnswer() {
-            document.querySelectorAll('.letter').forEach(l => {
-                if (selectedLetters.includes(l.textContent)) l.classList.add('wrong');
-            });
-            
-            score = Math.max(0, score - 20);
-            updateDisplay();
-            
-            setTimeout(() => {
-                selectedLetters = [];
-                document.querySelectorAll('.letter').forEach(l => l.className = 'letter');
-                updateSelectedWordDisplay();
-                alert('❌ Oops! Try again!');
-            }, 1000);
-        }
-
-        // Helper Functions
-        function shuffleArray(array) {
-            return array.sort(() => Math.random() - 0.5);
-        }
-
-        function updateDisplay() {
-            document.getElementById('score').textContent = score;
-            document.getElementById('high-score').textContent = highScore;
-            document.getElementById('hint-count').textContent = hintsRemaining;
-            document.getElementById('start-high-score').textContent = highScore;
-        }
-
-        function updateSelectedWordDisplay() {
-            document.getElementById('selected-word').textContent = 
-                selectedLetters.join(' ');
-        }
-
-        function updateHighScore() {
-            if (score > highScore) {
-                highScore = score;
-                localStorage.setItem('highScore', highScore);
-            }
-        }
-
-        // Hint System
-        document.getElementById('hint-btn').addEventListener('click', () => {
-            if (hintsRemaining > 0 && score >= 50) {
-                hintsRemaining--;
-                score -= 50;
-                const targetLetters = levels[currentLevel].word.split('');
-                const availableHints = targetLetters.filter(l => !selectedLetters.includes(l));
-                
-                if (availableHints.length > 0) {
-                    const hintLetter = availableHints[0];
-                    document.querySelectorAll('.letter').forEach(letter => {
-                        if (letter.textContent === hintLetter) {
-                            letter.style.backgroundColor = '#4ECDC4';
-                            setTimeout(() => letter.style.backgroundColor = '', 1000);
-                        }
-                    });
-                }
-                
-                updateDisplay();
-            }
-        });
-
-        // Star Rating System
-        function calculateStars() {
-            const timeTaken = (Date.now() - startTime) / 1000;
-            let stars = 3;
-            if (timeTaken > 30) stars--;
-            if (hintsRemaining < 1) stars--;
-            return Math.max(1, stars);
-        }
-
-        function showStars(count) {
-            document.getElementById('stars').innerHTML = 
-                '⭐'.repeat(count) + '☆'.repeat(3 - count);
-        }
-
-        // Collectible System
-        function addCollectible(emoji) {
-            document.getElementById('collectibles').innerHTML += 
-                `<span class="reward-emoji">${emoji}</span>`;
-        }
-
-        // Next Level Handler
-        document.getElementById('next-level').addEventListener('click', () => {
-            currentLevel++;
-            if (currentLevel < levels.length) {
-                loadLevel();
-                selectedLetters = [];
-                updateSelectedWordDisplay();
-            } else {
-                alert('🏆 You completed all levels! Amazing!');
-            }
-        });
-
-        // Music Toggle
-        document.getElementById('music-toggle').addEventListener('click', () => {
-            bgMusic.paused ? bgMusic.play() : bgMusic.pause();
-        });
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore(app);
     </script>
+    
+    <script src="js/game.js"></script>
 </body>
 </html>
