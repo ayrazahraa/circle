@@ -1,35 +1,44 @@
-<!-- index.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Kids Word Game</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kids Word Adventure</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div id="start-screen">
-        <h1>Word Adventure! 🎮</h1>
-        <button id="start-button">Play Now! 🚀</button>
+        <h1>Word Safari! 🦁</h1>
+        <button id="start-button">Start Game! 🚀</button>
         <button id="show-leaderboard">Leaderboard 🏆</button>
     </div>
 
     <div id="game-container" class="hidden">
-        <div id="score-display">Score: <span id="score">0</span></div>
-        <div id="image-container"></div>
+        <div id="score-board">
+            <span>⭐ Score: <span id="score">0</span></span>
+            <span>💡 Hints: <span id="hint-count">3</span></span>
+        </div>
+        
+        <div id="image-container">
+            <img class="animal-image" src="" alt="Animal friend">
+        </div>
+        
         <div id="selected-word"></div>
         <div id="letters-container"></div>
-        <button id="hint-button">Hint (💡<span id="hint-count">3</span>)</button>
+        <div id="collectibles"></div>
+        <button id="hint-btn" class="button">🔍 Need Help? (50 points)</button>
     </div>
 
     <div id="leaderboard" class="hidden">
-        <h2>Top Players 🏅</h2>
+        <h2>🏅 Top Players</h2>
         <div id="scores-list"></div>
-        <button class="close-btn">Close</button>
+        <button class="button close-btn">Close</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
         import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
-        
+
         const firebaseConfig = {
             apiKey: "AIzaSyAP1HXogxxs20Gkn324h2sV0aeTmUZq66Y",
             authDomain: "cirecle-game.firebaseapp.com",
@@ -45,7 +54,37 @@
         const leaderboardRef = collection(db, "leaderboard");
 
         window.firebaseService = {
-            // ... (keep previous firebase service functions)
+            async saveScore(name, score) {
+                try {
+                    await addDoc(leaderboardRef, {
+                        name,
+                        score,
+                        timestamp: new Date()
+                    });
+                } catch (error) {
+                    console.error("Error saving score:", error);
+                    throw error;
+                }
+            },
+
+            async getLeaderboard() {
+                try {
+                    const q = query(leaderboardRef, orderBy("score", "desc"), limit(10));
+                    const snapshot = await getDocs(q);
+                    return snapshot.docs.map(doc => doc.data());
+                } catch (error) {
+                    console.error("Error getting leaderboard:", error);
+                    return [];
+                }
+            },
+
+            setupRealTimeUpdates(updateCallback) {
+                const q = query(leaderboardRef, orderBy("score", "desc"), limit(10));
+                return onSnapshot(q, (snapshot) => {
+                    const scores = snapshot.docs.map(doc => doc.data());
+                    updateCallback(scores);
+                });
+            }
         };
     </script>
 
