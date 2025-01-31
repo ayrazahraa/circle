@@ -1,0 +1,152 @@
+:root {
+    --primary: #FF6B6B;
+    --secondary: #4ECDC4;
+    --accent: #FFE66D;
+    --background: #F7FFF7;
+}
+
+body {
+    margin: 0;
+    font-family: 'Comic Sans MS', cursive;
+    background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+#start-screen {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 20px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    max-width: 90%;
+}
+
+#game-container {
+    display: none;
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+
+.game-title {
+    color: var(--primary);
+    text-shadow: 2px 2px 0 var(--accent);
+    font-size: 3rem;
+    margin: 1rem 0;
+}
+
+#letters-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.letter {
+    background: var(--secondary);
+    color: white;
+    font-size: 2rem;
+    padding: 1rem;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 3px solid white;
+    user-select: none;
+}
+
+.letter:hover {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.selected {
+    background: var(--accent) !important;
+    transform: scale(0.9) rotate(-5deg);
+}
+
+.wrong {
+    background: #FF5252 !important;
+    animation: shake 0.5s;
+}
+
+#selected-word {
+    font-size: 3rem;
+    letter-spacing: 1rem;
+    color: var(--primary);
+    margin: 2rem 0;
+    font-weight: bold;
+}
+
+.reward-emoji {
+    font-size: 2rem;
+    margin: 0 0.5rem;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+}
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(10px); }
+    50% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+    100% { transform: translateX(0); }
+}
+
+.button {
+    background: var(--primary);
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 30px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 1rem;
+}
+
+.button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.star {
+    color: gold;
+    font-size: 2rem;
+    margin: 0 0.2rem;
+}
+
+#music-toggle {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    font-size: 2rem;
+    cursor: pointer;
+    background: none;
+    border: none;
+}
+
+.animal-image {
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
+    animation: bounce 2s infinite;
+}
+
+#score-board {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    font-size: 1.5rem;
+    margin: 1rem 0;
+}
