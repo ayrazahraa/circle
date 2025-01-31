@@ -4,19 +4,82 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Circle Puzzle Game</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+        canvas {
+            background: white;
+            border-radius: 50%;
+        }
+    </style>
 </head>
 <body>
-    <div id="game-container">
-        <canvas id="puzzle-canvas"></canvas>
-        <div id="ui">
-            <button id="restart-btn">Restart</button>
-            <div id="level-selector">
-                <span>Level:</span>
-                <select id="level-dropdown"></select>
-            </div>
-        </div>
-    </div>
-    <script src="script.js"></script>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        const pieces = [];
+        const totalPieces = 6;
+        const radius = canvas.width / 2;
+        let selectedPiece = null;
+        
+        function loadPuzzle() {
+            for (let i = 0; i < totalPieces; i++) {
+                pieces.push({
+                    angle: (Math.PI * 2 / totalPieces) * i,
+                    correctAngle: (Math.PI * 2 / totalPieces) * i,
+                    rotatedAngle: 0
+                });
+            }
+            drawPuzzle();
+        }
+        
+        function drawPuzzle() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            pieces.forEach((piece, index) => {
+                ctx.save();
+                ctx.translate(radius, radius);
+                ctx.rotate(piece.rotatedAngle);
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, radius, piece.angle, piece.angle + (Math.PI * 2 / totalPieces));
+                ctx.closePath();
+                ctx.fillStyle = `hsl(${(index * 60) % 360}, 80%, 50%)`;
+                ctx.fill();
+                ctx.restore();
+            });
+        }
+        
+        canvas.addEventListener('click', (event) => {
+            const x = event.offsetX - radius;
+            const y = event.offsetY - radius;
+            const angle = Math.atan2(y, x);
+            
+            let closestPiece = null;
+            let minDiff = Infinity;
+            
+            pieces.forEach(piece => {
+                const diff = Math.abs(angle - piece.angle);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    closestPiece = piece;
+                }
+            });
+            
+            if (closestPiece) {
+                closestPiece.rotatedAngle += Math.PI / totalPieces;
+                drawPuzzle();
+            }
+        });
+        
+        loadPuzzle();
+    </script>
 </body>
 </html>
