@@ -1,79 +1,39 @@
 // js/game.js
-// Updated Firebase functions
-const leaderboardCollection = db.collection("leaderboard");
-
+// Leaderboard functions using modular Firebase
 async function saveScoreToCloud(name, score) {
     try {
-        await leaderboardCollection.add({
-            name: name,
-            score: score,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        await window.firebaseService.saveScore(name, score);
     } catch (error) {
-        console.error("Error saving score: ", error);
+        alert('Failed to save score. Please check your connection!');
     }
 }
 
 async function getLeaderboardFromCloud() {
     try {
-        const snapshot = await leaderboardCollection
-            .orderBy('score', 'desc')
-            .limit(10)
-            .get();
-            
-        return snapshot.docs.map(doc => doc.data());
+        return await window.firebaseService.getLeaderboard();
     } catch (error) {
-        console.error("Error getting leaderboard: ", error);
+        alert('Failed to load leaderboard. Please try again later!');
         return [];
     }
 }
 
 // Real-time leaderboard updates
 function setupRealTimeLeaderboard() {
-    leaderboardCollection
-        .orderBy('score', 'desc')
-        .limit(10)
-        .onSnapshot(snapshot => {
-            const scores = snapshot.docs.map(doc => doc.data());
-            updateLeaderboardDisplay(scores);
-        });
+    return window.firebaseService.setupRealTimeUpdates((scores) => {
+        updateLeaderboardDisplay(scores);
+    });
 }
 
 // Modified endGame function
 async function endGame() {
-    const name = prompt('Game Over! Enter your name:');
-    if(name && name.trim() !== '') {
-        try {
-            await saveScoreToCloud(name.trim(), score);
-            showLeaderboard();
-        } catch (error) {
-            alert('Failed to save score. Please check your connection!');
-        }
+    const name = prompt('Game Over! Enter your name:') || 'Anonymous';
+    if(name.trim() !== '') {
+        await saveScoreToCloud(name.trim(), score);
+        showLeaderboard();
     }
-}
-
-// Updated leaderboard display
-async function showLeaderboard() {
-    try {
-        const scores = await getLeaderboardFromCloud();
-        updateLeaderboardDisplay(scores);
-        document.getElementById('leaderboard').classList.remove('hidden');
-    } catch (error) {
-        alert('Failed to load leaderboard. Please try again later!');
-    }
-}
-
-function updateLeaderboardDisplay(scores) {
-    const scoresHTML = scores
-        .map((entry, index) => `
-            <div class="score-item">
-                <span>${index + 1}. ${entry.name}</span>
-                <span>${entry.score}</span>
-            </div>
-        `).join('');
-    
-    document.getElementById('scores-list').innerHTML = scoresHTML;
 }
 
 // Initialize real-time updates when game starts
 setupRealTimeLeaderboard();
+
+// Rest of your game logic remains the same
