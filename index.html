@@ -4,9 +4,6 @@
 <head>
     <title>Kids Word Game</title>
     <link rel="stylesheet" href="css/style.css">
-    <!-- Add Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <div id="start-screen">
@@ -16,7 +13,7 @@
     </div>
 
     <div id="game-container">
-        <!-- Game content remains same -->
+        <!-- Your game content remains the same -->
     </div>
 
     <div id="leaderboard" class="hidden">
@@ -25,22 +22,70 @@
         <button class="close-btn">Close</button>
     </div>
 
-    <script>
-        // Firebase configuration
+    <script type="module">
+        // Firebase imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-analytics.js";
+
+        // Your Firebase configuration
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyAP1HXogxxs20Gkn324h2sV0aeTmUZq66Y",
+            authDomain: "cirecle-game.firebaseapp.com",
+            projectId: "cirecle-game",
+            storageBucket: "cirecle-game.appspot.com",
+            messagingSenderId: "406562720618",
+            appId: "1:406562720618:web:b001916d17ae33f924f313",
+            measurementId: "G-MJ3644NWSL"
         };
 
         // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore(app);
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+
+        // Leaderboard collection reference
+        const leaderboardRef = collection(db, "leaderboard");
+
+        // Firebase functions
+        const firebaseService = {
+            async saveScore(name, score) {
+                try {
+                    await addDoc(leaderboardRef, {
+                        name: name,
+                        score: score,
+                        timestamp: new Date()
+                    });
+                } catch (error) {
+                    console.error("Error saving score: ", error);
+                    throw error;
+                }
+            },
+
+            async getLeaderboard() {
+                try {
+                    const q = query(leaderboardRef, orderBy("score", "desc"), limit(10));
+                    const querySnapshot = await getDocs(q);
+                    return querySnapshot.docs.map(doc => doc.data());
+                } catch (error) {
+                    console.error("Error getting leaderboard: ", error);
+                    return [];
+                }
+            },
+
+            setupRealTimeUpdates(updateCallback) {
+                const q = query(leaderboardRef, orderBy("score", "desc"), limit(10));
+                return onSnapshot(q, (querySnapshot) => {
+                    const scores = querySnapshot.docs.map(doc => doc.data());
+                    updateCallback(scores);
+                });
+            }
+        };
+
+        // Export to game.js
+        window.firebaseService = firebaseService;
     </script>
-    
-    <script src="js/game.js"></script>
+
+    <script src="js/game.js" type="module"></script>
 </body>
 </html>
