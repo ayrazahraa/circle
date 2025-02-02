@@ -3,91 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kids Word Adventure</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Circle Puzzle</title>
+    <style>
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background-color: #f0f0f0;
+        }
+    </style>
 </head>
 <body>
-    <div id="start-screen">
-        <h1>Word Safari! 🦁</h1>
-        <button id="start-button">Start Game! 🚀</button>
-        <button id="show-leaderboard">Leaderboard 🏆</button>
-    </div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
 
-    <div id="game-container" class="hidden">
-        <div id="score-board">
-            <span>⭐ Score: <span id="score">0</span></span>
-            <span>💡 Hints: <span id="hint-count">3</span></span>
-        </div>
-        
-        <div id="image-container">
-            <img class="animal-image" src="" alt="Animal friend">
-        </div>
-        
-        <div id="selected-word"></div>
-        <div id="letters-container"></div>
-        <div id="collectibles"></div>
-        <button id="hint-btn" class="button">🔍 Need Help? (50 points)</button>
-    </div>
+        // Draw a circle divided into sections
+        function drawCircle() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 150;
+            const sections = 8; // Number of sections
+            const angle = (2 * Math.PI) / sections;
 
-    <div id="leaderboard" class="hidden">
-        <h2>🏅 Top Players</h2>
-        <div id="scores-list"></div>
-        <button class="button close-btn">Close</button>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyAP1HXogxxs20Gkn324h2sV0aeTmUZq66Y",
-            authDomain: "cirecle-game.firebaseapp.com",
-            projectId: "cirecle-game",
-            storageBucket: "cirecle-game.appspot.com",
-            messagingSenderId: "406562720618",
-            appId: "1:406562720618:web:b001916d17ae33f924f313",
-            measurementId: "G-MJ3644NWSL"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const leaderboardRef = collection(db, "leaderboard");
-
-        window.firebaseService = {
-            async saveScore(name, score) {
-                try {
-                    await addDoc(leaderboardRef, {
-                        name,
-                        score,
-                        timestamp: new Date()
-                    });
-                } catch (error) {
-                    console.error("Error saving score:", error);
-                    throw error;
-                }
-            },
-
-            async getLeaderboard() {
-                try {
-                    const q = query(leaderboardRef, orderBy("score", "desc"), limit(10));
-                    const snapshot = await getDocs(q);
-                    return snapshot.docs.map(doc => doc.data());
-                } catch (error) {
-                    console.error("Error getting leaderboard:", error);
-                    return [];
-                }
-            },
-
-            setupRealTimeUpdates(updateCallback) {
-                const q = query(leaderboardRef, orderBy("score", "desc"), limit(10));
-                return onSnapshot(q, (snapshot) => {
-                    const scores = snapshot.docs.map(doc => doc.data());
-                    updateCallback(scores);
-                });
+            for (let i = 0; i < sections; i++) {
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, i * angle, (i + 1) * angle);
+                ctx.closePath();
+                ctx.fillStyle = `hsl(${i * (360 / sections)}, 70%, 50%)`;
+                ctx.fill();
             }
-        };
-    </script>
+        }
 
-    <script src="js/game.js" type="module"></script>
+        // Rotate a section of the circle
+        function rotateSection(sectionIndex) {
+            console.log(`Rotating section ${sectionIndex}`);
+            // Add logic to rotate the specified section
+        }
+
+        drawCircle();
+
+        // Example: Add click event to rotate sections
+        canvas.addEventListener('click', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+
+            // Calculate which section was clicked
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const angle = Math.atan2(mouseY - centerY, mouseX - centerX);
+            const sectionIndex = Math.floor((angle + Math.PI) / (2 * Math.PI) * 8) % 8;
+
+            rotateSection(sectionIndex);
+        });
+    </script>
 </body>
 </html>
